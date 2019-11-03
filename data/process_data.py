@@ -3,6 +3,16 @@ import pandas as pd
 import sqlalchemy as db
 
 def load_data(messages_filepath, categories_filepath):
+    """
+        Load messages and related categories from input paths arguments
+
+         :param messages_filepath: The path of message file
+         :param categories_filepath: The path of category file
+         :type messages_filepath: string
+         :type categories_filepath: string
+         :return: The result of the merge of message and related categories
+         :rtype: DataFrame
+    """
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     df = pd.merge(messages,categories, on = 'id')
@@ -11,6 +21,15 @@ def load_data(messages_filepath, categories_filepath):
 
 
 def clean_data(df):
+    """
+        Cleans and drops unused columns and duplicated lines of the dataframe passed in argument.
+
+         :param df: The dataframe to be cleaned
+         :type df: DataFrame
+         :return: The result of the cleaning processing
+         :rtype: DataFrame
+    """
+    
     categories = df.categories.str.split(pat = ';', expand = True)
     row = categories.iloc[0]
     category_colnames = list(row.str[0:-2])
@@ -34,8 +53,16 @@ def clean_data(df):
 
 
 def save_data(df, database_filename):
+    """
+        Saves the dataframe df passed as argument in the given directory
+         :param df: The dataframe to be saved
+         :param database_filename: The path of the repository for db saving
+         :type df: DataFrame
+         :type database_filename: Path string
+         :return: None
+    """
     engine = db.create_engine('sqlite:///' + database_filename)
-    df.to_sql('InsertTableName', engine, index=False)  
+    df.to_sql('InsertTableName1', engine, index=False)  
 
 
 def main():
