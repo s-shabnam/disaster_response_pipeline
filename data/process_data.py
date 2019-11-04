@@ -44,7 +44,7 @@ def clean_data(df):
     # drop the original categories column from `df`
     df.drop('categories',axis = 1, inplace = True)
     df = pd.concat([df, categories], axis = 1)
-    
+    df.replace(2,1,inplace =True)
     # drop duplicates
     df = df.drop_duplicates()
     
@@ -62,7 +62,7 @@ def save_data(df, database_filename):
          :return: None
     """
     engine = db.create_engine('sqlite:///' + database_filename)
-    df.to_sql('InsertTableName1', engine, index=False)  
+    df.to_sql('InsertTableName', engine, index=False)  
 
 
 def main():

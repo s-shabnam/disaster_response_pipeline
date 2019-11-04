@@ -15,7 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import classification_report
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 
 
 
@@ -31,7 +31,7 @@ def load_data(database_filepath):
     
     X = df['message']
     y = df.drop(['message', 'original', 'genre', 'id'], axis = 1)
-    category_names = np.unique(y)
+    category_names = y.columns
     
     return X, y, category_names
 
@@ -68,16 +68,17 @@ def build_model():
     
     parameters = {
         'vect__ngram_range': ((1, 1), (1, 2)),
-        'vect__max_df': (0.5, 0.75, 1.0),
-        'vect__max_features': (None, 5000, 10000),
-        'tfidf__use_idf': (True, False),
+        #'vect__max_df': (0.5, 0.75, 1.0),
+        #'vect__max_features': (None, 5000, 10000),
+        #'tfidf__use_idf': (True, False),
         'clf__estimator__n_estimators': [50, 100, 200],
-        'clf__estimator__min_samples_leaf': [2, 3, 4],
+        #'clf__estimator__min_samples_leaf': [2, 3, 4],
     }
 
-    model = GridSearchCV(pipeline, param_grid=parameters)
+    #model = GridSearchCV(pipeline, param_grid=parameters)
     #model.estimator.get_params().keys()
-    
+
+    model = RandomizedSearchCV(pipeline, param_distributions = parameters)
     return model
 
 
@@ -89,7 +90,7 @@ def evaluate_model(model, X_test, Y_test, category_names):
         :param Y_test: The classes of the test set.
         :param category_names: The list of all classes.
     """
-    Y_pred = model.predict(X_test, Y_test)
+    Y_pred = model.predict(X_test)
     for i in category_names:
         print(classification_report(Y_test[i], Y_pred[i], target_names = category_names))
     
