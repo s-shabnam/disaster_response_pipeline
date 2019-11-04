@@ -19,3 +19,9 @@ The web app also displays visualizations of the data.
     `python run.py`
 
 3. Go to http://0.0.0.0:3001/
+
+
+### License
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+Licensed under the MIT license.
