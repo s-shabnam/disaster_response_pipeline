@@ -31,7 +31,7 @@ def load_data(database_filepath):
     
     X = df['message']
     y = df.drop(['message', 'original', 'genre', 'id'], axis = 1)
-    category_names = y.columns
+    category_names = y.columns.unique()
     
     return X, y, category_names
 
@@ -63,7 +63,7 @@ def build_model():
     pipeline = Pipeline([
          ('vect', CountVectorizer(tokenizer=tokenize)),
          ('tfidf', TfidfTransformer()),
-         ('clf', MultiOutputClassifier(RandomForestClassifier(random_state = 1)))
+         ('clf', MultiOutputClassifier(RandomForestClassifier(n_estimators= 2 , random_state = 1)))
     ])
     
     parameters = {
@@ -79,7 +79,8 @@ def build_model():
     #model.estimator.get_params().keys()
 
     model = RandomizedSearchCV(pipeline, param_distributions = parameters)
-    return model
+    # return model
+    return pipeline
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
@@ -90,9 +91,10 @@ def evaluate_model(model, X_test, Y_test, category_names):
         :param Y_test: The classes of the test set.
         :param category_names: The list of all classes.
     """
-    Y_pred = model.predict(X_test)
+    y_pred = model.predict(X_test)
+    y_pred_df = pd.DataFrame(y_pred, columns = Y_test.columns)
     for i in category_names:
-        print(classification_report(Y_test[i], Y_pred[i], target_names = category_names))
+        print(classification_report(Y_test[i], y_pred_df[i], target_names = category_names))
     
 
 
@@ -114,6 +116,9 @@ def main():
         print('Training model...')
         model.fit(X_train, Y_train)
         
+        print('Saving model...\n    MODEL: {}'.format(model_filepath))
+        save_model(model, model_filepath)
+
         print('Evaluating model...')
         evaluate_model(model, X_test, Y_test, category_names)
 
