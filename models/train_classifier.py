@@ -5,8 +5,6 @@ nltk.download(['punkt', 'wordnet'])
 from sqlalchemy import create_engine
 import pandas as pd
 import numpy as np
-import pickle
-
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from sklearn.multioutput import MultiOutputClassifier
@@ -15,6 +13,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import classification_report
+from sklearn.model_selection import GridSearchCV
+
+import pickle
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 
 
@@ -31,8 +32,8 @@ def load_data(database_filepath):
     
     X = df['message']
     y = df.drop(['message', 'original', 'genre', 'id'], axis = 1)
-    category_names = y.columns.unique()
-    
+    category_names = np.unique(y.columns)
+
     return X, y, category_names
 
 
@@ -61,9 +62,9 @@ def build_model():
     :return: Builed and optimised model
     """
     pipeline = Pipeline([
-         ('vect', CountVectorizer(tokenizer=tokenize)),
-         ('tfidf', TfidfTransformer()),
-         ('clf', MultiOutputClassifier(RandomForestClassifier(n_estimators= 2 , random_state = 1)))
+        ('vect', CountVectorizer(tokenizer=tokenize)),
+        ('tfidf', TfidfTransformer()),
+        ('clf', MultiOutputClassifier(RandomForestClassifier(n_estimators = 2, random_state = 1)))
     ])
     
     parameters = {
@@ -91,36 +92,40 @@ def evaluate_model(model, X_test, Y_test, category_names):
         :param Y_test: The classes of the test set.
         :param category_names: The list of all classes.
     """
-    y_pred = model.predict(X_test)
-    y_pred_df = pd.DataFrame(y_pred, columns = Y_test.columns)
+
+    y_pred = pd.DataFrame(model.predict(X_test), columns = category_names)
+
     for i in category_names:
-        print(classification_report(Y_test[i], y_pred_df[i], target_names = category_names))
-    
+        print(classification_report(Y_test[i], y_pred[i], target_names = category_names))  
 
 
 def save_model(model, model_filepath):
     with open(model_filepath, 'wb') as file:
         pickle.dump(model, file)
+        
+
+def load_model(model_filepath):
+   return pickle.load(open(model_filepath, 'rb'))
 
 
 def main():
     if len(sys.argv) == 3:
-        database_filepath, model_filepath = sys.argv[1:]
-        print('Loading data...\n    DATABASE: {}'.format(database_filepath))
-        X, Y, category_names = load_data(database_filepath)
-        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
+        database_filename, model_filepath = sys.argv[1:]
+        print('Loading data...\n    DATABASE: {}'.format(database_filename))
+        X, y, category_names = load_data(database_filename)
+        X_train, X_test, y_train, y_test = train_test_split(X, y)        
         
         print('Building model...')
         model = build_model()
         
         print('Training model...')
-        model.fit(X_train, Y_train)
+        model.fit(X_train, y_train)
         
         print('Saving model...\n    MODEL: {}'.format(model_filepath))
         save_model(model, model_filepath)
 
         print('Evaluating model...')
-        evaluate_model(model, X_test, Y_test, category_names)
+        evaluate_model(model, X_test, y_test, category_names)
 
         print('Saving model...\n    MODEL: {}'.format(model_filepath))
         save_model(model, model_filepath)
