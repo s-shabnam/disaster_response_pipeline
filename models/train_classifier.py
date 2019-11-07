@@ -80,8 +80,7 @@ def build_model():
     #model.estimator.get_params().keys()
 
     model = RandomizedSearchCV(pipeline, param_distributions = parameters)
-    # return model
-    return pipeline
+    return model
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
@@ -120,9 +119,6 @@ def main():
         
         print('Training model...')
         model.fit(X_train, y_train)
-        
-        print('Saving model...\n    MODEL: {}'.format(model_filepath))
-        save_model(model, model_filepath)
 
         print('Evaluating model...')
         evaluate_model(model, X_test, y_test, category_names)
