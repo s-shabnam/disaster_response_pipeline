@@ -28,7 +28,7 @@ def load_data(database_filepath):
         :return:  X, y, category_names
     """
     engine = create_engine('sqlite:///' + database_filepath)
-    df = pd.read_sql_table(table_name = 'InsertTableName', con = engine)
+    df = pd.read_sql_table(table_name = 'Cleaned_Messages', con = engine)
     
     X = df['message']
     y = df.drop(['message', 'original', 'genre', 'id'], axis = 1)
@@ -131,8 +131,8 @@ def main():
     else:
         print('Please provide the filepath of the disaster messages database '\
               'as the first argument and the filepath of the pickle file to '\
-              'save the model to as the second argument. \n\nExample: python '\
-              'train_classifier.py ../data/DisasterResponse.db classifier.pkl')
+              'save the model to as the second argument. \n\nExample:  '\
+              'python train_classifier.py ../data/DisasterResponse.db classifier.pkl')
 
 
 if __name__ == '__main__':
