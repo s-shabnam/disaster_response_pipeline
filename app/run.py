@@ -43,10 +43,12 @@ def index():
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
     
-    weather_related_counts = df.groupby('weather_related').count()['message']
     medical_help_counts = df.groupby('medical_help').count()['message']
-    
     non_yes_values = ['Non', 'Yes']
+    
+    df_categories = df.drop(['id','message', 'genre', 'original'], axis =1)
+    most_tagged_categories =  df_categories.sum(axis = 1)
+    most_tagged_categories_names = (df_categories.columns)
     
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
@@ -73,18 +75,18 @@ def index():
           {
             'data': [
                 Bar(
-                    x=non_yes_values,
-                    y=weather_related_counts
+                    x=most_tagged_categories_names,
+                    y=most_tagged_categories 
                 )
             ],
 
             'layout': {
-                'title': 'Is message related the weather condition',
+                'title': 'Distribution of Message categories',
                 'yaxis': {
                     'title': "Count"
                 },
                 'xaxis': {
-                    'title': "Weather related"
+                    'title': "Categories"
                 }
             }
         }
@@ -125,7 +127,7 @@ def go():
     query = request.args.get('query', '') 
     tokenized_query = tokenize(query)
     # use model to predict classification for query
-    classification_labels = model.predict([tokenized_query])
+    classification_labels = model.predict(tokenized_query)
     classification_results = dict(zip(df.columns[4:], classification_labels))
 
     # This will render the go.html Please see that file. 
