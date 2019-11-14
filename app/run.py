@@ -7,7 +7,7 @@ from nltk.tokenize import word_tokenize
 
 from flask import Flask
 from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
+from plotly.graph_objs import Bar, Line, Scatter
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 
@@ -27,7 +27,7 @@ def tokenize(text):
 
 # load data
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
-df = pd.read_sql_table('Cleaned_Messages', engine)
+df = pd.read_sql_table('InsertTableName', engine)
 
 # load model
 model = joblib.load("../models/classifier.pkl")
@@ -42,6 +42,11 @@ def index():
     # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
+    
+    weather_related_counts = df.groupby('weather_related').count()['message']
+    medical_help_counts = df.groupby('medical_help').count()['message']
+    
+    non_yes_values = ['Non', 'Yes']
     
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
@@ -63,6 +68,45 @@ def index():
                     'title': "Genre"
                 }
             }
+        },
+        # graph 2
+          {
+            'data': [
+                Bar(
+                    x=non_yes_values,
+                    y=weather_related_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Is message related the weather condition',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Weather related"
+                }
+            }
+        }
+        ,
+        # graph 3
+          {
+            'data': [
+                Bar(
+                    x=non_yes_values,
+                    y=medical_help_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Is message related medical help',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Medical help"
+                }
+            }
         }
     ]
     
@@ -79,9 +123,9 @@ def index():
 def go():
     # save user input in query
     query = request.args.get('query', '') 
-
+    tokenized_query = tokenize(query)
     # use model to predict classification for query
-    classification_labels = model.predict([query])[0]
+    classification_labels = model.predict([tokenized_query])
     classification_results = dict(zip(df.columns[4:], classification_labels))
 
     # This will render the go.html Please see that file. 
