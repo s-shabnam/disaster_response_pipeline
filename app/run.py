@@ -27,7 +27,7 @@ def tokenize(text):
 
 # load data
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
-df = pd.read_sql_table('InsertTableName', engine)
+df = pd.read_sql_table('Cleaned_Messages', engine)
 
 # load model
 model = joblib.load("../models/classifier.pkl")
@@ -125,9 +125,9 @@ def index():
 def go():
     # save user input in query
     query = request.args.get('query', '') 
-    tokenized_query = tokenize(query)
+
     # use model to predict classification for query
-    classification_labels = model.predict(tokenized_query)
+    classification_labels = model.predict([query])[0]
     classification_results = dict(zip(df.columns[4:], classification_labels))
 
     # This will render the go.html Please see that file. 
